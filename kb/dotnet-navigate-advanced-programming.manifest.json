@@ -1,0 +1,16 @@
+{
+  "source": {
+    "file": "dotnet-navigate-advanced-programming.pdf",
+    "sha256": "830e0364ab4789b3860b94f658e5fd5fceee5e300de5e747b65236b9ae31625f",
+    "title": "dotnet navigate advanced-programming | Microsoft Learn",
+    "producer": "Microsoft Learn PDF 1.0.26056.01",
+    "pages": 1061,
+    "extractedAt": "2026-09-12T15:03:20.5012785+00:00",
+    "extractorVersion": "0.1.0"
+  },
+  "warnings": [
+    "33 个大纲条目是纯容器节点（无目标页），只参与构成路径，不产出 section。"
+  ],
+  "sectionCount": 192,
+  "blockCount": 7902
+}

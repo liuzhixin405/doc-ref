@@ -1,0 +1,14 @@
+{
+  "source": {
+    "file": "dotnet-architecture-microservices.pdf",
+    "sha256": "1676c6fbab8eaee88e2f6461d5e858b794bdaa3d3d42f965107c86de98649b6e",
+    "title": "dotnet architecture microservices | Microsoft Learn",
+    "producer": "Microsoft Learn PDF 1.0.25309.01",
+    "pages": 483,
+    "extractedAt": "2026-09-12T15:03:17.5076263+00:00",
+    "extractorVersion": "0.1.0"
+  },
+  "warnings": [],
+  "sectionCount": 74,
+  "blockCount": 3815
+}

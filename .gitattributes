@@ -1,0 +1,17 @@
+# 这些文件必须是 LF。
+#
+# 本机 core.autocrlf=true，没有下面这几行的话 git checkout 会把它们转成 CRLF。
+# 而 cove 的 frontmatter 解析要求文件以 "---\n" 开头（internal/skills/skills.go 的
+# parseFrontmatter），CRLF 会让整段 frontmatter 被**静默忽略** —— 症状是 skill 照样加载、
+# 但 paths 失效、再也不自动触发。不报错，所以极难发现。
+#
+# sync-skills.py 也会把源文件里的 CRLF/BOM 归一化掉作为兜底，但那只是第二道防线：
+# 让仓库里存的就是 LF，才不会有「本地对、推上去别人拉下来就坏」这种事。
+dotnet-kb/*.md   text eol=lf
+dotnet-kb/*.py   text eol=lf
+README.md        text eol=lf
+
+# 知识库大文件（sections.jsonl，最大 16MB）走 Git LFS，避免重提取膨胀 git 历史
+kb/*.sections.jsonl   filter=lfs diff=lfs merge=lfs -text
+# manifest 是小 JSON，普通文本，固定 LF
+kb/*.json   text eol=lf

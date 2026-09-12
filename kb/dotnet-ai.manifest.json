@@ -1,0 +1,16 @@
+{
+  "source": {
+    "file": "dotnet-ai.pdf",
+    "sha256": "affcd7d92e6b43f1469cadff11a64b1aeb73c9c59bae3eef68f3ff6da370f0d3",
+    "title": "dotnet ai | Microsoft Learn",
+    "producer": "Microsoft Learn PDF 1.0.25122.01",
+    "pages": 212,
+    "extractedAt": "2026-09-12T15:03:15.7032527+00:00",
+    "extractorVersion": "0.1.0"
+  },
+  "warnings": [
+    "10 个大纲条目是纯容器节点（无目标页），只参与构成路径，不产出 section。"
+  ],
+  "sectionCount": 43,
+  "blockCount": 2202
+}

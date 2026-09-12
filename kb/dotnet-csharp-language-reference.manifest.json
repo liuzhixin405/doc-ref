@@ -1,0 +1,16 @@
+{
+  "source": {
+    "file": "dotnet-csharp-language-reference.pdf",
+    "sha256": "16513707a4d38309944eb84b82043287e695685198a2f6cd6bdb8db904bc63e3",
+    "title": "dotnet csharp language-reference | Microsoft Learn",
+    "producer": "Microsoft Learn PDF 1.0.26056.01",
+    "pages": 1909,
+    "extractedAt": "2026-09-12T15:03:30.7094805+00:00",
+    "extractorVersion": "0.1.0"
+  },
+  "warnings": [
+    "26 个大纲条目是纯容器节点（无目标页），只参与构成路径，不产出 section。"
+  ],
+  "sectionCount": 814,
+  "blockCount": 16418
+}

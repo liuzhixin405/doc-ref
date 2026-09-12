@@ -11,9 +11,13 @@ docref kb --coverage                                    # 当前覆盖了哪些�
 ```
 
 知识库目录：`--dir` > 环境变量 `DOCREF_KB` > 默认 `D:\pdf\jsonl`。
+**skill 里一律用 `--dir` 显式指定**，不依赖环境变量 —— 没设的时候会静默回落到那个默认值，
+症状是「查不到所以没查」，不会有人发现。
 
-工具装在 `%USERPROFILE%\.cove\plugins\docref\bin\docref.exe` —— 在 cove 的插件目录里，随 cove 走，不落到系统目录。
-把那个 `bin` 加进 PATH 后可直接用 `docref`，下文都这么写；**skill 里则一律写全路径**，因为智能体不能假定 PATH 配好了。
+工具是个 .NET 8 控制台程序，放哪都行，但**必须整个目录一起放** ——
+单个 `docref.exe` 跑不起来，它只是 apphost，会去找同目录的 `docref.dll`。
+只拷 exe 的症状：`The application to execute does not exist: '...\docref.dll'`（实测过）。
+把那个目录加进 PATH 后可直接用 `docref`，下文都这么写；**skill 里则一律写全路径**，因为智能体不能假定 PATH 配好了。
 
 ---
 
@@ -21,14 +25,27 @@ docref kb --coverage                                    # 当前覆盖了哪些�
 
 ## ① 自动 —— 主要用法，你什么都不用做
 
-配套 skill 一份正文、两个落地位置，由 `python dotnet-kb/sync-skills.py` 同步：
+配套 skill 一份正文、多个落地位置，由 `python dotnet-kb/sync-skills.py` 同步。
+正文里机器相关的路径写成占位符（`@DOCREF@` / `@KB@` / `@SYNCWEB@`），同步时才填成实际路径 ——
+所以仓库里这份正文推到别的机器也能用，换机器只需改脚本顶部那两行配置（或设同名环境变量）。
+知识库默认就在仓库的 `kb/` 目录（相对脚本位置算），clone 下来就有，不用另配。
 
-| 位置 | 给谁 |
-|---|---|
-| `~/.claude/skills/dotnet-kb/` | Claude Code |
-| `~/.cove/plugins/docref/skills/dotnet-kb-cove/` | cove（和 `docref.exe` 同在一个插件包里）|
+```bash
+python dotnet-kb/sync-skills.py          # 只装 Claude Code（默认）
+python dotnet-kb/sync-skills.py --cove   # 额外装一份给 cove
+```
 
-名字必须不同：cove 先加载 `~/.cove/skills`、后加载 `~/.claude/skills`，同名会被后者覆盖。
+| 位置 | 给谁 | 什么时候写 |
+|---|---|---|
+| `~/.claude/skills/dotnet-kb/` | Claude Code | 默认 |
+| `~/.cove/plugins/docref/skills/dotnet-kb-cove/` | cove（和 `docref.exe` 同在一个插件包里）| 加 `--cove` |
+
+默认不写 cove 那份，免得在没有 cove 的机器上凭空造出 `~/.cove/plugins/docref/` 目录。
+
+脚本在写之前会检查 docref 和知识库目录是不是真的在（连 `docref.dll` 有没有一起拷都查），
+缺了就直接失败、什么都不写 —— 不猜，也不给你一个「装好了但每条命令都跑空」的结果。
+
+cove 那份的名字必须不同：cove 先加载 `~/.cove/skills`、后加载 `~/.claude/skills`，同名会被后者覆盖。
 写任何 C#/.NET 代码前自动生效。
 你正常提需求（「给 xxx 加个接口」「改一下这个 Service」），会看到它：
 
@@ -93,10 +110,19 @@ docref kb --coverage                                        # 覆盖了哪些文
 
 ## ③ 补文档
 
-新 PDF 丢进 `D:\pdf`，重跑一次整目录：
+两条路径，都落在仓库的 `kb/` 目录：
+
+**官方 PDF** —— `docref extract` 生成，页码能翻回 PDF 核对：
 
 ```powershell
-docref extract "D:\pdf" -o "D:\pdf\jsonl"     # 批量；扫描件会被明确拒绝并跳过
+docref extract "D:\pdf" -o kb    # 批量；扫描件会被明确拒绝并跳过
+```
+
+**没有官方 PDF 的知识**（GitHub wiki / HTML 文档 / 各库自己的文档站）——
+联网查到后手工沉淀，产出同样的 JSONL 但标成 `web-sync`：
+
+```bash
+python dotnet-kb/sync-web-kb.py <输入.json>
 ```
 
 覆盖缺口用 `docref kb --coverage` 和逐词查分数来找，**不要凭印象猜**。
@@ -107,8 +133,26 @@ JWT Bearer（335）、minimal API（319）都有实质内容 —— 和事前估
 > 这是快照，不是清单。补了文档就会变，**每次自己查**。
 > 同理 skill 里刻意不写任何覆盖清单：写死的清单会过期，还会劝你别去查一个其实已经有的东西。
 
-> 上面七个缺口**都没有官方 PDF**（GitHub wiki / HTML 文档），现在的管道吃不进来。
-> 需要另做一条 Markdown/HTML 摄取路径，产出同样的 JSONL。
+> 上面七个缺口**都没有官方 PDF**，不能靠 `extract` 自动摄取。
+> `sync-web-kb.py` 走的是「联网查到 → 手工整理成 JSON → 落盘」这条慢路径，一条一条累计
+> （比如已沉淀 Microsoft.Data.Sqlite 的 CRUD 用法）。
+
+## 知识库随仓库分发（kb/）
+
+仓库根目录的 `kb/` 就是知识库本体：`<名字>.sections.jsonl` + `<名字>.manifest.json` 成对。
+`sync-skills.py` 把 skill 的 `--dir` 默认指向它（相对脚本位置 `../kb` 算），所以：
+
+- **换电脑 / 给别人用**：clone 仓库 → 装好 docref → 跑一次 `python dotnet-kb/sync-skills.py`，即可用。
+- **知识库持续累计**：`extract` 与 `sync-web-kb.py` 都写进 `kb/`，commit + push 就分发出去了。
+
+两类文档，引用时别混标：
+
+| 类型 | `manifest.source.producer` | 页码 | 引用标注 |
+|---|---|---|---|
+| PDF 提取 | `Microsoft Learn PDF …` | 真实 PDF 页码 | `[来源: <id> p<页码>]` |
+| 联网同步 | `web-sync` | 合成虚拟页码 | `[联网-官方: URL]` / `[联网-非官方: URL]` |
+
+详见 `kb/README.md`。
 
 ## 诊断
 
@@ -152,6 +196,8 @@ docref debug-lines "D:\pdf\dotnet-csharp.pdf" 760    # 某页的原始行几何�
 ```
 
 `page` + `ord` 是可引用、可回溯的锚点 —— **每条知识都能指回 PDF 第几页第几块**。这是这个知识库区别于 LLM 的关键属性：可验证。
+
+> 这只对 `extract` 出的 PDF 文档成立。`web-sync` 文档的页码是合成的，其「可回溯」落在 manifest 里的来源 URL 上，引用时标 `[联网-*]`。
 
 `top` 是块顶端的 Y 坐标（PDF 坐标，Y 向上），用于把边界页按下一节的起始位置劈开。
 

@@ -8,13 +8,22 @@ description: Use BEFORE writing or modifying any C#/.NET code - queries the loca
 本地有一份从 Microsoft 官方文档 PDF 提取的知识库，**它是第一权威**；查不到再联网，模型自身知识是最后兜底。
 
 ```
-C:\Users\Lenovo\.cove\plugins\docref\bin\docref.exe   工具
-D:\pdf\jsonl                                          知识库（默认路径，也可设环境变量 DOCREF_KB）
+@DOCREF@   工具
+@KB@                                                  知识库目录
 ```
 
-**命令必须写全路径。** 它在 cove 的插件目录里、**不在 PATH 上**，只写 `docref.exe` 会直接 command not found。
-换机器或换用户名时，上面那个路径等于 `%USERPROFILE%\.cove\plugins\docref\bin\docref.exe`
-（bash 里写 `$USERPROFILE/.cove/plugins/docref/bin/docref.exe`）。
+**命令必须写全路径 —— 照抄上面这两行，不要自己拼。** docref 不在 PATH 上，
+只写 `docref.exe` 会 command not found。
+
+**每条命令都要显式带上 `--dir "@KB@"`。** 不要依赖环境变量 `DOCREF_KB`：没设的时候
+docref 会静默回落到默认的 `D:\pdf\jsonl`，那里什么都没有 —— 症状是「知识库目录不存在」
+或查到一堆明显无关的内容。带上 `--dir` 就没有这个不确定性。
+
+路径里的斜杠是**正斜杠**，别改成反斜杠：这些命令在 Git Bash 里跑，
+`C:\Users\...` 的反斜杠会被当转义符吃掉，变成 `C:Users...`。
+
+两个路径都由 `dotnet-kb/sync-skills.py` 在写出时填入，是**本机专属**的。
+换机器只需改脚本顶部那两行配置再跑一次同步，正文不用动。
 
 ## 铁律
 
@@ -48,19 +57,19 @@ D:\pdf\jsonl                                          知识库（默认路径�
 
 ```bash
 # 搜索。只返回元数据 + 摘要，不返回正文（单个 section 最长 13 万字符）
-C:\Users\Lenovo\.cove\plugins\docref\bin\docref.exe kb "ValueTask"
-C:\Users\Lenovo\.cove\plugins\docref\bin\docref.exe kb "HttpClient.SendAsync" --limit 5
+@DOCREF@ kb "ValueTask" --dir "@KB@"
+@DOCREF@ kb "HttpClient.SendAsync" --limit 5 --dir "@KB@"
 
 # 取正文。写代码时通常只要代码块
-C:\Users\Lenovo\.cove\plugins\docref\bin\docref.exe kb --id dotnet-csharp#0128 --only code
-C:\Users\Lenovo\.cove\plugins\docref\bin\docref.exe kb --id dotnet-csharp#0128            # 全文，超预算会截断并给出续取游标
+@DOCREF@ kb --id dotnet-csharp#0128 --only code --dir "@KB@"
+@DOCREF@ kb --id dotnet-csharp#0128 --dir "@KB@"      # 全文，超预算会截断并给出续取游标
 
 # 大 section 先看结构，再直接跳到需要的块
-C:\Users\Lenovo\.cove\plugins\docref\bin\docref.exe kb --id dotnet-csharp#0128 --outline
-C:\Users\Lenovo\.cove\plugins\docref\bin\docref.exe kb --id dotnet-csharp#0128 --from 67
+@DOCREF@ kb --id dotnet-csharp#0128 --outline --dir "@KB@"
+@DOCREF@ kb --id dotnet-csharp#0128 --from 67 --dir "@KB@"
 
 # 看当前覆盖了什么
-C:\Users\Lenovo\.cove\plugins\docref\bin\docref.exe kb --coverage
+@DOCREF@ kb --coverage --dir "@KB@"
 ```
 
 ## 截断是常态，不是例外 —— 这条最容易毁掉任务质量
@@ -90,7 +99,7 @@ C:\Users\Lenovo\.cove\plugins\docref\bin\docref.exe kb --coverage
 **可以直接用自然语言提问。** 查询串会按空白和中英边界切成检索词：
 
 ```
-$ C:\Users\Lenovo\.cove\plugins\docref\bin\docref.exe kb 什么是signalr
+$ @DOCREF@ kb 什么是signalr --dir "@KB@"
 「什么是signalr」（检索词: 什么是 ✓ | signalr ✓） 命中 3 条：
 ```
 
@@ -106,7 +115,7 @@ $ C:\Users\Lenovo\.cove\plugins\docref\bin\docref.exe kb 什么是signalr
 不管上面列出了几条命中：
 
 ```
-$ C:\Users\Lenovo\.cove\plugins\docref\bin\docref.exe kb 什么是Mapster
+$ @DOCREF@ kb 什么是Mapster --dir "@KB@"
 「什么是Mapster」（检索词: 什么是 ✓ | Mapster ✗） 命中 1 条：
   [   3] …  什么是持续集成？
 注意: Mapster 在知识库里零命中 —— 上面的结果来自其他检索词，不代表库里有这些内容。
@@ -133,7 +142,55 @@ $ C:\Users\Lenovo\.cove\plugins\docref\bin\docref.exe kb 什么是Mapster
 覆盖面会变（文档是持续补充的），**所以这里不列清单**。任何写死的清单都会过期，并且会劝你别去查一个其实已经有的东西。
 
 - 不确定某主题在不在库里 → 直接查。一次查询 300~500ms，比猜便宜。
-- 想看全貌 → `C:\Users\Lenovo\.cove\plugins\docref\bin\docref.exe kb --coverage`。
+- 想看全貌 → `@DOCREF@ kb --coverage --dir "@KB@"`。
+
+## 补充知识库（库会长大，这不改变上面的规则）
+
+知识库是可以随时扩充的 —— 但**这不改变什么**：不管你记不记得库里有某份文档，
+判断依据永远是现场 `--coverage` 的输出，和现场那次查询的分数 / `✓` `✗`。
+「我印象里补过了」等于没补。
+
+从 PDF 转入新文档：
+
+```bash
+# 单个 PDF
+@DOCREF@ extract "G:/pdf/c#/某个新文档.pdf" -o "@KB@"
+
+# 整个目录（批量提取其中所有 PDF）
+@DOCREF@ extract "G:/pdf/c#" -o "@KB@"
+
+# 转完必须验证：新文档出现在 coverage 里、section 数对得上
+@DOCREF@ kb --coverage --dir "@KB@"
+```
+
+三个必须知道的点：
+
+**① `-o` 必须写 `@KB@`。** 不给 `-o` 时默认落到 `./out` —— 提取一路显示成功、
+你也会以为进库了，实际查的时候一条都搜不到。这是最容易白忙一场的地方。
+
+**② 产物是一对，必须两个都在 `@KB@`：** `<stem>.sections.jsonl`（正文）
+和 `<stem>.manifest.json`（元数据）。`--coverage` 是**从 manifest 实时读**的 ——
+manifest 没落进去，这份文档在覆盖率里就报不出来，而你查不到时无从判断是「库里没有」
+还是「加库时漏了」。
+
+**③ 提取过程中的 `警告` / `跳过:` 不许忽略。** 输出里的警告（例如「N 个大纲条目是纯容器节点，
+不产出 section」）说的是**哪些内容没进库**。转完把 `--coverage` 的输出和警告说给用户听，
+别默默加完就完事 —— 那意味着他以为库里有，而实际上有几页是空的。
+
+## 联网知识回写（web-sync）
+
+降到 L1/L2 联网查到东西后，**顺手把结果沉淀回知识库**，别让下一次同类查询又从头联网。用 skill 同目录的脚本：
+
+```bash
+python @SYNCWEB@                 # 内置示例（Microsoft.Data.Sqlite CRUD）
+python @SYNCWEB@ <输入.json>      # 自定义；输入结构见脚本头部注释
+```
+
+它把联网知识写成 `web-<主题>.sections.jsonl` + `.manifest.json` 一对文件，落进 `@KB@`。
+
+**为什么单独一类、怎么引用**：这类文档 `producer="web-sync"`、页码是合成的虚拟页码（翻不到 PDF），
+所以引用它时**只能标 `[联网-官方: URL]` / `[联网-非官方: URL]`，不能标 `[来源: id p页码]`** —— 混标会骗过审查的人。
+写完后照常验证：`@DOCREF@ kb --coverage --dir "@KB@"` + 一次 `kb "关键词"` 确认命中。
 
 ## 联网降级：怎么查、什么算无果
 

@@ -1,0 +1,16 @@
+{
+  "source": {
+    "file": "aspnet-core-aspnetcore-10.0.pdf",
+    "sha256": "5a9558f2a5d7b408ac6b2ba3f4f531e0c3112ec32755b19c66054712eb7b7143",
+    "title": "aspnet core-aspnetcore-10.0 | Microsoft Learn",
+    "producer": "Microsoft Learn PDF 1.0.26056.01",
+    "pages": 8034,
+    "extractedAt": "2026-09-12T15:03:56.2694508+00:00",
+    "extractorVersion": "0.1.0"
+  },
+  "warnings": [
+    "177 个大纲条目是纯容器节点（无目标页），只参与构成路径，不产出 section。"
+  ],
+  "sectionCount": 925,
+  "blockCount": 80824
+}

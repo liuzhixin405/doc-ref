@@ -20,3 +20,6 @@ coverage*.xml
 # OS
 .DS_Store
 Thumbs.db
+
+# 实验/草稿（.spike 是 API 粒度切分的 spike，未定型）
+.spike/

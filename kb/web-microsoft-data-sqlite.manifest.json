@@ -1,0 +1,16 @@
+{
+  "source": {
+    "file": "https://learn.microsoft.com/en-us/dotnet/standard/data/sqlite/",
+    "sha256": "",
+    "title": "Microsoft.Data.Sqlite（联网同步）",
+    "producer": "web-sync",
+    "pages": 6,
+    "extractedAt": "2026-09-12T15:41:40.275840+00:00",
+    "extractorVersion": "web-sync-0.1.0"
+  },
+  "warnings": [
+    "此文档由联网搜索同步而来，非官方 PDF 提取；pages 为合成的虚拟页码，引用时请用 [联网-官方:]/[联网-非官方:] 标注，不要用 [来源: id p页码]。"
+  ],
+  "sectionCount": 6,
+  "blockCount": 19
+}
