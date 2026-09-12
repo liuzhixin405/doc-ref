@@ -1,0 +1,22 @@
+# Build results
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+
+# Visual Studio / Rider
+.vs/
+.idea/
+*.user
+
+# NuGet
+*.nupkg
+*.snupkg
+
+# Test results
+[Tt]est[Rr]esult*/
+coverage*.json
+coverage*.xml
+
+# OS
+.DS_Store
+Thumbs.db
